@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"hello/proto"
 
@@ -24,6 +25,31 @@ func (*server) Hello(ctx context.Context, req *proto.HelloRequest) (*proto.Hello
 		CustomHello: customHello,
 	}
 	return res, nil
+}
+
+func (*server) HelloManyLanguages(req *proto.HelloManyLanguagesRequest, stream proto.HelloService_HelloManyLanguagesServer) error {
+	fmt.Printf("Hello many times function was invoked with %+v \n", req)
+
+	langs := []string{"Salut", "Hello", "Ni hao", "Kaixo", "Alô", "Privyét", "Schalom", "Hola", "Yassou", "Hej"}
+
+	firstName := req.GetHello().GetFirstName()
+	prefix := req.GetHello().GetPrefix()
+
+	for _, greeting := range langs {
+		helloLanguage := greeting + " " + prefix + " " + firstName
+
+		res := &proto.HelloManyLanguagesResponse{
+			HelloLanguage: helloLanguage,
+		}
+
+		if err := stream.Send(res); err != nil {
+			return err
+		}
+
+		time.Sleep(time.Second)
+	}
+
+	return nil
 }
 
 func main() {
