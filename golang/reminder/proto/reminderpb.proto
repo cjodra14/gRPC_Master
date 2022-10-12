@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package reminder;
+
+option go_package = "proto";
+
+import "google/protobuf/timestamp.proto";
+
+// Como Líder de proyecto quiero agregar recordatorios a ciertos miembros del equipo para que no se les olviden algunas tareas.
+// Para ello un recordatorio tiene la siguiente información: mensaje, fecha limite, tags, nombre de miembro del equipo y prioridad.
+
+message Reminder{
+    int64                     id          = 1;
+    string                    message     = 2;
+    google.protobuf.Timestamp deadline    = 3;
+    repeated string           tags        = 4;
+    string                    team_member = 5;
+    int64                     priority    = 6;
+}
+
+
+message ReminderRequest {
+    int64 id = 1;
+}
+
+message ReminderResponse {
+    Reminder reminder = 1;
+}
+
+message SetReminderRequest {
+    Reminder reminder = 1;
+}
+
+message SetReminderResponse {
+    int64 id = 1;
+}
+
+service ReminderService{
+    rpc GetRemindByID (ReminderRequest) returns (ReminderResponse);
+    rpc SetRemind (SetReminderRequest) returns (SetReminderResponse);
+  
+
+}
