@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -50,6 +51,60 @@ func (*server) HelloManyLanguages(req *proto.HelloManyLanguagesRequest, stream p
 	}
 
 	return nil
+}
+
+func (*server) HelloGoodbye(stream proto.HelloService_HelloGoodbyeServer) error {
+	fmt.Println("Goodbye function was invoked")
+
+	goodbye := "Goodbye guys:"
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			//Once is finished the strwam we gonna send the response
+
+			return stream.SendAndClose(&proto.HelloGoodbyeResponse{
+				Goodbye: goodbye,
+			})
+		}
+
+		if err != nil {
+			log.Fatalf("Error reading the client stream %+v", err)
+		}
+
+		firstName := req.GetHello().GetFirstName()
+		prefix := req.GetHello().GetPrefix()
+
+		goodbye += prefix + " " + firstName + " "
+	}
+}
+
+func (*server) Goodbye(stream proto.HelloService_GoodbyeServer) error{
+	fmt.Printf("Goodabye bidirectional function was invoked \n")
+	
+	for{
+		req, err := stream.Recv()
+		if err != nil{
+			log.Fatalf("Error reading the client stream %+v", err)
+		}
+
+		if err == io.EOF{
+			return nil
+		}
+
+		firstName := req.Hello.FirstName
+
+		prefix := req.Hello.Prefix
+
+		goodbye := "Goodbye "+prefix+" "+firstName+" :("
+
+		sendErr:= stream.Send(&proto.GoodbyeResponse{
+			Goodbye: goodbye,
+		})
+		if sendErr != nil{
+			log.Fatalf("Error sending to the client %+v", err)
+		}
+	}
 }
 
 func main() {
